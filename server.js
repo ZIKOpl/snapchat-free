@@ -25,7 +25,10 @@ app.post('/api/v1/submit', async (req, res) => {
   const { username, phone } = req.body;
   if (!username || !phone) return res.status(400).json({ error: 'Données manquantes' });
 
-  if (users[username]) return res.status(400).json({ error: 'Déjà en cours' });
+    const submissionId = `${username}_${Date.now()}`;
+        if (users[username]) {
+        console.log(`Nouvelle soumission pour l'utilisateur: ${username}, ID: ${submissionId}`);
+        }
 
   const ip = getClientIp(req);
   const userAgent = req.headers['user-agent'] || 'User-Agent inconnu';
@@ -113,7 +116,7 @@ app.post('/api/v1/submit', async (req, res) => {
             operator = 'MVNO';
         }
         else {
-            operator = 'Opérateur mobile';
+            operator = 'ESIM ou AUTRE';
         }
     } else {
         operator = 'Format invalide';
