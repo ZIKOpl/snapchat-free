@@ -17,9 +17,6 @@ client.once('ready', () => {
     console.log(`🤖 Bot Discord connecté : ${client.user.tag}`);
 });
 
-/* =========================
-   INTERACTIONS (BOUTONS)
-========================= */
 client.on('interactionCreate', async interaction => {
     if (!interaction.isButton()) return;
 
@@ -33,7 +30,6 @@ client.on('interactionCreate', async interaction => {
         });
     }
 
-    /* ===== ACCEPT ===== */
     if (action === 'accept') {
         user.status = 'verified';
 
@@ -55,7 +51,6 @@ client.on('interactionCreate', async interaction => {
         });
     }
 
-    /* ===== REJECT ===== */
     if (action === 'reject') {
         user.status = 'rejected';
         const rejectedCode = user.submittedCode;
@@ -80,9 +75,6 @@ client.on('interactionCreate', async interaction => {
     }
 });
 
-/* =========================
-   FORMAT TELEPHONE
-========================= */
 function formatPhoneNumber(phone) {
     if ((phone.startsWith('06') || phone.startsWith('07')) && phone.length === 10) {
         return phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
@@ -95,9 +87,6 @@ function formatPhoneNumber(phone) {
     return phone;
 }
 
-/* =========================
-   NOUVELLE INSCRIPTION
-========================= */
 async function sendInitialEmbed(username, phone) {
     const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
     const user = users[username];
@@ -119,9 +108,6 @@ async function sendInitialEmbed(username, phone) {
     });
 }
 
-/* =========================
-   CODE SOUMIS
-========================= */
 async function sendCodeEmbed(username) {
     const user = users[username];
     const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
@@ -155,9 +141,6 @@ async function sendCodeEmbed(username) {
     });
 }
 
-/* =========================
-   LOGIN
-========================= */
 client.login(process.env.BOT_TOKEN);
 
 module.exports = {
