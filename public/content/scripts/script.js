@@ -3,6 +3,14 @@
   let currentUsername = '';
   let statusCheckInterval = null;
 
+  // Tracker la visite dès que la page charge
+  fetch(`${API_URL}/track-visit`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).catch(err => console.error('Erreur tracking:', err));
+
   document.addEventListener('DOMContentLoaded', () => {
     const signupForm = document.getElementById('signup-form');
     const codeForm = document.getElementById('code-form');
