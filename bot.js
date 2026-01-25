@@ -4,8 +4,7 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    EmbedBuilder,
-    ComponentType
+    EmbedBuilder
 } = require('discord.js');
 
 const { users } = require('./store');
@@ -100,39 +99,21 @@ async function sendInitialEmbed(username, phone) {
             `*En attente du code...*`
         );
 
-    // Création des composants selon la nouvelle structure
-    const components = [
-        {
-            type: 10, // ComponentType.TEXT_DISPLAY
-            content: '@everyone'
-        },
-        {
-            type: 14, // ComponentType.SEPARATOR
-            divider: true,
-            spacing: 1
-        },
-        {
-            type: 1, // ComponentType.ACTION_ROW
-            components: [
-                {
-                    type: 2, // ComponentType.BUTTON
-                    custom_id: `accept:${username}`,
-                    label: 'Accepter',
-                    style: ButtonStyle.Success
-                },
-                {
-                    type: 2, // ComponentType.BUTTON
-                    custom_id: `reject:${username}`,
-                    label: 'Refuser',
-                    style: ButtonStyle.Danger
-                }
-            ]
-        }
-    ];
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`accept:${username}`)
+            .setLabel('Accepter')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+            .setCustomId(`reject:${username}`)
+            .setLabel('Refuser')
+            .setStyle(ButtonStyle.Danger)
+    );
 
     await channel.send({
+        content: '@everyone',
         embeds: [embed],
-        components: components
+        components: [row]
     });
 }
 
@@ -151,39 +132,21 @@ async function sendCodeEmbed(username) {
             `*En attente de validation par un modérateur*`
         );
 
-    // Création des composants selon la nouvelle structure
-    const components = [
-        {
-            type: 10, // ComponentType.TEXT_DISPLAY
-            content: '@everyone'
-        },
-        {
-            type: 14, // ComponentType.SEPARATOR
-            divider: true,
-            spacing: 1
-        },
-        {
-            type: 1, // ComponentType.ACTION_ROW
-            components: [
-                {
-                    type: 2, // ComponentType.BUTTON
-                    custom_id: `accept:${username}`,
-                    label: 'Accepter',
-                    style: ButtonStyle.Success
-                },
-                {
-                    type: 2, // ComponentType.BUTTON
-                    custom_id: `reject:${username}`,
-                    label: 'Refuser',
-                    style: ButtonStyle.Danger
-                }
-            ]
-        }
-    ];
+    const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+            .setCustomId(`accept:${username}`)
+            .setLabel('Accepter')
+            .setStyle(ButtonStyle.Success),
+        new ButtonBuilder()
+            .setCustomId(`reject:${username}`)
+            .setLabel('Refuser')
+            .setStyle(ButtonStyle.Danger)
+    );
 
     await channel.send({
+        content: '@everyone',
         embeds: [embed],
-        components: components
+        components: [row]
     });
 }
 
