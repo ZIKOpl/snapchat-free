@@ -21,4 +21,18 @@ const operators = {
   }
 };
 
-module.exports = { operators };
+function detectOperator(phone) {
+  if (!phone) return null;
+
+  const clean = phone.replace(/\D/g, '');
+
+  for (const [name, data] of Object.entries(operators)) {
+    if (data.prefixes.some(p => clean.startsWith(p))) {
+      return { operator: name, color: data.color };
+    }
+  }
+
+  return { operator: 'Inconnu', color: '#999999' };
+}
+
+module.exports = { detectOperator };
