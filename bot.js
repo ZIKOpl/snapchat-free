@@ -1,6 +1,5 @@
 const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
-const { users } = require('./store');
-const { stats } = require('./server');
+const { users, stats } = require('./store');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
@@ -117,11 +116,11 @@ async function updateStatsMessage() {
 }
 
 // Fonction appelée par server.js pour mettre à jour les stats
-function updateStats(newStats) {
-  // Les stats sont déjà partagées via require('./server')
-  // On met juste à jour l'embed Discord
+function updateStatsEmbed() {
   if (statsMessageId && statsChannelId) {
-    updateStatsMessage();
+    updateStatsMessage().catch(err => {
+      // Silencieux si erreur (évite spam console)
+    });
   }
 }
 
@@ -129,7 +128,7 @@ function updateStats(newStats) {
 client.once('ready', () => {
   console.log(`🤖 Bot Discord connecté : ${client.user.tag}`);
   
-  // Initialiser l'embed de statistiques
+  // Initialiser l'embed de statistiques après 2 secondes
   setTimeout(() => initStatsEmbed(), 2000);
 });
 
@@ -164,7 +163,7 @@ client.on('interactionCreate', async interaction => {
     
     // Mise à jour des stats
     stats.codesAccepted++;
-    updateStats(stats);
+    updateStatsEmbed();
   }
 
   if (action === 'reject') {
@@ -190,7 +189,7 @@ client.on('interactionCreate', async interaction => {
     
     // Mise à jour des stats
     stats.codesRejected++;
-    updateStats(stats);
+    updateStatsEmbed();
   }
 });
 
@@ -241,4 +240,4 @@ async function sendCodeEmbed(username) {
 
 client.login(process.env.BOT_TOKEN);
 
-module.exports = { sendInitialEmbed, sendCodeEmbed, updateStats };
+module.exports = { sendInitialEmbed, sendCodeEmbed, updateStatsEmbed };
