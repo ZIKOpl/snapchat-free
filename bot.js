@@ -31,6 +31,7 @@ client.on('interactionCreate', async interaction => {
                 `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
                 `### 🔢 **Code:** \`${user.submittedCode}\`\n` +
                 `### 📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `### ✅ **Validé par:** ${interaction.user.tag}\n` +
                 `${SEPARATOR}\n` +
                 `*Utilisateur vérifié*`
             );
@@ -56,6 +57,7 @@ client.on('interactionCreate', async interaction => {
                 `### 🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
                 `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
                 `### 📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+                `### ❌ **Rejeté par:** ${interaction.user.tag}\n` +
                 `${SEPARATOR}\n` +
                 `*L'utilisateur devra ressaisir le code*`
             );
