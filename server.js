@@ -2,30 +2,12 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const { users } = require('./store');
-const { sendInitialEmbed, sendCodeEmbed, updateStats } = require('./bot');
+const { users, stats } = require('./store');
+const { sendInitialEmbed, sendCodeEmbed, updateStatsEmbed } = require('./bot');
 const { detectOperator } = require('./operators');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
-// ======================= STATISTIQUES =======================
-const stats = {
-  totalVisits: 0,
-  currentVisitors: 0,
-  totalRegistrations: 0,
-  totalCodesSubmitted: 0,
-  codesAccepted: 0,
-  codesRejected: 0,
-  lastVisit: null,
-  lastRegistration: null,
-  startTime: Date.now()
-};
-
-// Fonction pour obtenir les stats (utilisée par bot.js)
-function getStats() {
-  return stats;
-}
 
 // ======================= MIDDLEWARE =======================
 app.use(cors());
@@ -40,13 +22,13 @@ app.use((req, res, next) => {
     stats.lastVisit = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
     
     // Mettre à jour l'embed Discord
-    updateStats(stats);
+    updateStatsEmbed();
     
     // Décrémenter après 5 minutes d'inactivité
     setTimeout(() => {
       if (stats.currentVisitors > 0) {
         stats.currentVisitors--;
-        updateStats(stats);
+        updateStatsEmbed();
       }
     }, 5 * 60 * 1000);
   }
@@ -92,7 +74,7 @@ app.post('/api/v1/submit', async (req, res, next) => {
     // Mise à jour des stats
     stats.totalRegistrations++;
     stats.lastRegistration = new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' });
-    updateStats(stats);
+    updateStatsEmbed();
 
     res.json({ success: true });
   } catch (err) {
@@ -117,7 +99,7 @@ app.post('/api/v1/verify', async (req, res, next) => {
     
     // Mise à jour des stats
     stats.totalCodesSubmitted++;
-    updateStats(stats);
+    updateStatsEmbed();
 
     res.json({ success: true });
   } catch (err) {
@@ -172,6 +154,3 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`🌐 API Express lancée sur le port ${PORT}`);
 });
-
-// Exporter les fonctions de stats pour bot.js
-module.exports = { getStats, stats };
