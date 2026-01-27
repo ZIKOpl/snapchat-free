@@ -37,7 +37,7 @@ function createStatsEmbed() {
   const STATS_SEPARATOR = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
   return new EmbedBuilder()
-    .setColor('#0D0C0C')
+    .setColor('#FBFF00')
     .setTitle('📊 Statistiques en temps réel - Snap+')
     .setDescription(
       `${STATS_SEPARATOR}\n\n` +
